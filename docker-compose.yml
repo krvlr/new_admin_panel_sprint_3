@@ -97,7 +97,7 @@ services:
 
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch:7.17.9
-    # restart: always
+    restart: always
     environment:
       - "discovery.type=single-node"
       - "xpack.security.enabled=false"
@@ -117,7 +117,7 @@ services:
     build:
       context: .
       dockerfile: postgres_to_es/Dockerfile
-    # restart: always
+    restart: always
     depends_on:
       db:
         condition: service_healthy

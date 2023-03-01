@@ -7,7 +7,8 @@ from loguru import logger
 def backoff(start_sleep_time=0.1, factor=2, border_sleep_time=10):
     """
     Функция для повторного выполнения функции через некоторое время, если возникла ошибка.
-    Использует наивный экспоненциальный рост времени повтора (factor) до граничного времени ожидания (border_sleep_time)
+    Использует наивный экспоненциальный рост времени повтора (factor)
+    до граничного времени ожидания (border_sleep_time)
     Формула:
         t = start_sleep_time * 2^(n) if t < border_sleep_time
         t = border_sleep_time if t >= border_sleep_time

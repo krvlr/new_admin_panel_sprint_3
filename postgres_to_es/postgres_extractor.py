@@ -17,15 +17,15 @@ FILMWORKS_QUERY = """
             fw.created,
             fw.modified,
             COALESCE (
-                    json_agg(
-           DISTINCT jsonb_build_object(
-               'person_role', pfw.role,
-               'person_id', p.id,
-               'person_name', p.full_name
-           )
-            ) FILTER (WHERE p.id is not null),
+                json_agg(
+                    DISTINCT jsonb_build_object(
+                       'person_role', pfw.role,
+                       'person_id', p.id,
+                       'person_name', p.full_name
+                    )
+                ) FILTER (WHERE p.id is not null),
             '[]'
-        ) as persons,
+            ) as persons,
         array_agg(DISTINCT g.name) as genres
         FROM content.film_work fw
         LEFT JOIN content.person_film_work pfw ON pfw.film_work_id = fw.id
@@ -38,18 +38,20 @@ FILMWORKS_QUERY = """
 
 
 class PostgresExtractor:
-    def __init__(self):
-        self.connection = self._create_connection()
-        self.cursor = self.connection.cursor()
-
     @backoff()
-    def _create_connection(self):
-        return psycopg2.connect(
+    def create_connection(self):
+        self.connection = psycopg2.connect(
             **POSTGRES_CONNECTION_SETTINGS, cursor_factory=RealDictCursor
         )
+        return self.connection
 
     @backoff()
     def extract_movies(self, date_last_modified: datetime) -> Iterator:
-        self.cursor.execute(FILMWORKS_QUERY, (date_last_modified,) * 3)
-        while rows := self.cursor.fetchmany(ETL_BATCH_SIZE):
-            yield rows
+        if not self.connection:
+            raise Exception(
+                "Не создано подключение к postgresql. Воспользуйтесь create_connection."
+            )
+        with self.connection.cursor() as cursor:
+            cursor.execute(FILMWORKS_QUERY, (date_last_modified,) * 3)
+            while rows := cursor.fetchmany(ETL_BATCH_SIZE):
+                yield rows

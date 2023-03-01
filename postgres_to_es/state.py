@@ -1,6 +1,5 @@
 import abc
 import json
-import os
 from typing import Any, Optional
 
 import redis
@@ -54,7 +53,7 @@ class RedisStorage(BaseStorage):
 
     @backoff()
     def save_state(self, state: dict) -> None:
-        self.redis_adapter.hmset("state", state)
+        self.redis_adapter.hset("state", mapping=state)
 
     @backoff()
     def retrieve_state(self) -> dict:
